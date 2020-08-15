@@ -1,10 +1,8 @@
-# THIS TRAINING: https://www.youtube.com/watch?v=t3rkNX2qd_k
+# THIS TRAINING as base with changes: https://www.youtube.com/watch?v=t3rkNX2qd_k
 
 trainmusic train.ogg
 restmusic rest.ogg
 donemusic done.ogg
-
-
 
 # rest first to get you ready for training :)
 rest 5
