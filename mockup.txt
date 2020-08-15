@@ -1,0 +1,19 @@
+trainmusic train.ogg
+#restmusic rest.ogg
+restmusic pollution.ogg
+donemusic done.ogg
+
+# rest first to get you ready for training :)
+rest 5
+
+train 45 skipjack
+#rest 15
+#
+#train 45 skipjack
+#rest 15
+#
+#train 45 foo
+#rest 15
+#
+#train 45 blank
+#rest 15
