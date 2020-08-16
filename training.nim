@@ -4,7 +4,16 @@ import sound.sound
 import illwill, illwillWidgets
 
 const updateTimeout = 100
-
+const ascii = @[
+"""
+  o
+ /|\
+ / \""",
+"""
+\ o /
+  |
+ / \"""
+]
 type
   ExerciseKind = enum
     TRAIN, REST
@@ -25,6 +34,9 @@ type
     exercises: seq[TrainingExercise]
     repetitions: int
     totalTrainingSeconds: float
+    asciiArt: InfoBox
+    defaultBackgroundColor: BackgroundColor
+    defaultForegroundColor: ForegroundColor
   TrainingScriptLine = seq[string]
   TrainingExercise = object
     name: string
@@ -79,7 +91,7 @@ proc parse(training: Training, script: TrainingScript) =
 
 proc fillChoosebox(training: Training) =
   for exercise in training.exercises:
-    training.chooseBox.add exercise.name & " ===>  " & $exercise.duration
+    training.chooseBox.add ($exercise.duration).align(6) & " " & exercise.name
 
 proc currentExcersice(training: Training): TrainingExercise =
   return training.exercises[training.currentExcerciseIdx]
@@ -127,16 +139,20 @@ proc newTraining(path: string): Training =
   result.trainingScript = lex(path)
   result.parse(result.trainingScript)
   result.tb = newTerminalBuffer(terminalWidth(), terminalHeight())
+  result.defaultBackgroundColor = result.tb.getBackgroundColor()
+  result.defaultForegroundColor = result.tb.getForegroundColor()
   result.infoBox = newInfoBox("", 0 ,0, terminalWidth())
   result.durationBox = newInfoBox("", 0 ,terminalHeight() - 2, terminalWidth())
   result.chooseBox = newChooseBox(@[], 0, 1, terminalWidth() - 2, terminalHeight() - 4)
-  result.progressBar = newProgressBar("GEHT NET", 0, terminalHeight() - 1, terminalWidth(), 50, 100)
+  result.progressBar = newProgressBar("", 0, terminalHeight() - 1, terminalWidth(), 50, 100)
+  result.asciiArt = newInfoBox("", terminalWidth()-5, 0, 5, 0)
   result.musicRest.setLooping(true)
   result.musicTrain.setLooping(true)
   result.fillChoosebox()
   result.next()
 
 proc exitProc() {.noconv.} =
+
   illwillDeinit()
   showCursor()
   quit(0)
@@ -152,7 +168,12 @@ proc startCorrectMusic(training: Training) =
 proc input(training: Training) =
   var key = getKey()
   case key
-  of Key.Escape: exitProc()
+  of Key.Escape:
+    training.tb.setBackgroundColor(training.defaultBackgroundColor)
+    training.tb.setForegroundColor(training.defaultForegroundColor)
+    training.tb.clear(" ")
+    training.tb.display()
+    exitProc()
   of Key.Space:
     training.paused = not training.paused
     if training.paused:
@@ -166,8 +187,8 @@ proc formatDuration(training: Training): string =
   return
     $training.elapsed.int & " / " &
     $training.currentExcersice().duration.int &
-    "   REPETITIONS:" & $training.repetitions &
-    "   TOTAL TRAINING TIME:" & $initDuration(seconds=training.totalTrainingSeconds.int)
+    "   REPETITIONS: " & $training.repetitions &
+    "   TOTAL TRAINING TIME: " & $initDuration(seconds=training.totalTrainingSeconds.int)
 
 proc render(training: Training) =
   training.tb.clear(" ")
@@ -180,28 +201,41 @@ proc render(training: Training) =
   training.tb.render(training.durationBox)
   training.tb.render(training.chooseBox)
   training.tb.render(training.progressBar)
+  training.tb.render(training.asciiArt)
   training.tb.display()
 
-illwillInit(fullscreen=true)
-setControlCHook(exitProc)
-hideCursor()
+proc main() =
+  illwillInit(fullscreen=true)
+  setControlCHook(exitProc)
+  hideCursor()
 
-var scriptPath = getAppDir() / "mockup.txt"
-if paramCount() > 0:
-  scriptPath = paramStr(1)
+  var scriptPath = getAppDir() / "mockup.txt"
+  if paramCount() > 0:
+    scriptPath = paramStr(1)
 
-var training = newTraining(scriptPath)
+  var training = newTraining(scriptPath)
 
-while true:
-  let loopStartTime = epochTime()
-  training.input()
-  training.render()
-  sleep(updateTimeout)
-  if training.paused:
-    continue
-  let loopTime = epochTime() - loopStartTime
-  training.elapsed += loopTime
-  training.totalTrainingSeconds += loopTime
-  if training.isExcersiseDone():
-    training.next()
-  training.progressBar.value = training.elapsed.float.clamp(0, float.high)
+  while true:
+    let loopStartTime = epochTime()
+    training.input()
+    training.render()
+    sleep(updateTimeout)
+    if training.paused:
+      continue
+    let loopTime = epochTime() - loopStartTime
+    training.elapsed += loopTime
+    training.totalTrainingSeconds += loopTime
+    if training.isExcersiseDone():
+      training.next()
+    training.progressBar.value = training.elapsed.float.clamp(0, float.high)
+    if training.currentExcersice.kind == TRAIN:
+      if training.totalTrainingSeconds.int mod 2 == 0:
+        training.asciiArt.text = ascii[0]
+      else:
+        training.asciiArt.text = ascii[1]
+    else:
+      training.asciiArt.text = ""
+
+
+when isMainModule:
+  main()
