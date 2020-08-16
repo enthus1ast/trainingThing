@@ -1,5 +1,5 @@
 # trainingThing
-A small cli tool, that helps you getting shredded after these corona times :)
+A small cli tool, that helps you getting :muscle: shredded :muscle: after these corona times :)
 
 
 ![trainingThing](trainingThing.png)
