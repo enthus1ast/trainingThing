@@ -50,4 +50,7 @@ Usage
 training path/to/training/file
 ```
 
+```
 space => pause/resume workout
+esc => exit
+```
