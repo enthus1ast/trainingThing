@@ -116,13 +116,16 @@ proc next(training: Training) =
   of TRAIN: training.musicTrain.play()
   of REST: training.musicRest.play()
 
-proc newTraining(str: string): Training =
+proc newTraining(path: string): Training =
+  if not path.fileExists:
+    echo "Training script file not exist: ", path
+    quit()
   result = Training()
   result.repetitions = 0
   result.currentExcerciseIdx = -1
   result.elapsed = 0.0
   result.paused = false
-  result.trainingScript = lex(str)
+  result.trainingScript = lex(path)
   result.parse(result.trainingScript)
   result.tb = newTerminalBuffer(terminalWidth(), terminalHeight())
   result.infoBox = newInfoBox("", 0 ,0, terminalWidth())
@@ -172,7 +175,12 @@ proc render(training: Training) =
 illwillInit(fullscreen=true)
 setControlCHook(exitProc)
 hideCursor()
-var training = newTraining(getAppDir() / "mockup.txt")
+
+var scriptPath = getAppDir() / "mockup.txt"
+if paramCount() > 0:
+  scriptPath = paramStr(1)
+
+var training = newTraining(scriptPath)
 
 while true:
   let loopStartTime = epochTime()
