@@ -1,11 +1,7 @@
+import times, strutils, sequtils, os
 import cligen
-import illwill
-import illwillWidgets
-import times
-
 import sound.sound
-import strutils
-import os
+import illwill, illwillWidgets
 
 const updateTimeout = 100
 
@@ -14,7 +10,6 @@ type
     TRAIN, REST
   Training = ref object
     paused: bool
-    # train: bool
     trainingScript: TrainingScript
     tb: TerminalBuffer
     infoBox: InfoBox
@@ -25,8 +20,11 @@ type
     musicTrain: Sound
     musicRest: Sound
     musicDone: Sound
+    musicNextRound: Sound
     elapsed: float
     exercises: seq[TrainingExercise]
+    repetitions: int
+    totalTrainingSeconds: float
   TrainingScriptLine = seq[string]
   TrainingExercise = object
     name: string
@@ -57,11 +55,14 @@ proc parse(training: Training, script: TrainingScript) =
     of "donemusic":
       echo "LOAD DONEMUSIC", line[1]
       training.musicDone = newSoundWithURL("file://" & getAppDir() / line[1])
+    of "nextroundmusic":
+      echo "LOAD NEXTROUNDMUSIC", line[1]
+      training.musicNextRound = newSoundWithURL("file://" & getAppDir() / line[1])
     of "train":
       echo "ADD EXERCISE", line[2]
       let elem = TrainingExercise(
         duration: line[1].parseFloat,
-        name: line[2],
+        name: line[2..^1].join(" "),
         kind: TRAIN
       )
       training.exercises.add elem
@@ -73,6 +74,8 @@ proc parse(training: Training, script: TrainingScript) =
         kind: REST
       )
       training.exercises.add elem
+    of "repetitions":
+      training.repetitions = line[1].parseInt
 
 proc fillChoosebox(training: Training) =
   for exercise in training.exercises:
@@ -85,13 +88,25 @@ proc stopAllMusic(training: Training) =
   training.musicDone.stop()
   training.musicTrain.stop()
   training.musicRest.stop()
+  training.musicNextRound.stop()
 
 proc next(training: Training) =
   training.stopAllMusic()
   if training.currentExcerciseIdx == training.exercises.len - 1:
-    training.paused = true
-    training.musicDone.play()
-    return
+    if training.repetitions > 0:
+      training.musicNextRound.play()
+      ## Is playing is not exported :(
+      # while training.musicNextRound.isPlaying():
+      #   sleep(10)
+      sleep(2500) # TODO find a way to test if musicNextRound still plays
+      training.currentExcerciseIdx = -1
+      training.repetitions -= 1
+    else:
+      training.progressBar.value = 100 # to avoid an crash dont know what causes this TODO
+      training.progressBar.maxValue = 100  # to avoid an crash dont know what causes this TODO
+      training.paused = true
+      training.musicDone.play()
+      return
   training.currentExcerciseIdx += 1
   training.chooseBox.choosenidx = training.currentExcerciseIdx
   training.elapsed = 0.0
@@ -103,17 +118,17 @@ proc next(training: Training) =
 
 proc newTraining(str: string): Training =
   result = Training()
+  result.repetitions = 0
   result.currentExcerciseIdx = -1
   result.elapsed = 0.0
   result.paused = false
-  # result.train = false
   result.trainingScript = lex(str)
   result.parse(result.trainingScript)
   result.tb = newTerminalBuffer(terminalWidth(), terminalHeight())
   result.infoBox = newInfoBox("", 0 ,0, terminalWidth())
-  result.durationBox = newInfoBox("FOO", 0 ,terminalHeight() - 2, terminalWidth())
+  result.durationBox = newInfoBox("", 0 ,terminalHeight() - 2, terminalWidth())
   result.chooseBox = newChooseBox(@[], 0, 1, terminalWidth() - 2, terminalHeight() - 4)
-  result.progressBar = newProgressBar("FOO", 0, terminalHeight() - 1, terminalWidth(), 50, 100)
+  result.progressBar = newProgressBar("GEHT NET", 0, terminalHeight() - 1, terminalWidth(), 50, 100)
   result.musicRest.setLooping(true)
   result.musicTrain.setLooping(true)
   result.fillChoosebox()
@@ -132,17 +147,16 @@ proc input(training: Training) =
   case key
   of Key.Escape: exitProc()
   of Key.Space: training.paused = not training.paused
-  # of Key.Enter: training.train = not training.train
   else: discard
 
 proc formatDuration(training: Training): string =
-  return $training.elapsed.int & " / " & $training.currentExcersice().duration.int
+  return
+    $training.elapsed.int & " / " &
+    $training.currentExcersice().duration.int &
+    "   REPETITIONS:" & $training.repetitions &
+    "   TOTAL TRAINING TIME:" & $initDuration(seconds=training.totalTrainingSeconds.int)
 
 proc render(training: Training) =
-  # if training.train:
-  #   training.tb.setBackgroundColor(bgRed)
-  # else:
-  #   training.tb.setBackgroundColor(bgGreen)
   training.tb.clear(" ")
   if training.paused:
     training.infoBox.text = "PAUSED " & training.formatDuration()
@@ -167,10 +181,9 @@ while true:
   sleep(updateTimeout)
   if training.paused:
     continue
-  training.elapsed += epochTime() - loopStartTime
+  let loopTime = epochTime() - loopStartTime
+  training.elapsed += loopTime
+  training.totalTrainingSeconds += loopTime
   if training.isExcersiseDone():
     training.next()
-  training.progressBar.value = training.elapsed.float
-
-
-
+  training.progressBar.value = training.elapsed.float.clamp(0, float.high)

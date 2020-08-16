@@ -3,11 +3,14 @@
 trainmusic train.ogg
 restmusic rest.ogg
 donemusic done.ogg
+nextroundmusic nextround.ogg
+
+repetitions 2
 
 # rest first to get you ready for training :)
 rest 5
 
-train 60 HIGH_KNEES
+train 60 HIGH KNEES
 rest 10
 
 train 60 JUMP_ROPES
