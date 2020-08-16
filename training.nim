@@ -1,5 +1,4 @@
 import times, strutils, sequtils, os
-import cligen
 import sound.sound
 import illwill, illwillWidgets
 
