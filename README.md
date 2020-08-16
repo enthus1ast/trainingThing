@@ -42,3 +42,12 @@ rest 10
 
 
 ```
+
+Usage
+=====
+
+```
+training path/to/training/file
+```
+
+space => pause/resume workout
