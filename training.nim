@@ -102,8 +102,6 @@ proc next(training: Training) =
       training.currentExcerciseIdx = -1
       training.repetitions -= 1
     else:
-      training.progressBar.value = 100 # to avoid an crash dont know what causes this TODO
-      training.progressBar.maxValue = 100  # to avoid an crash dont know what causes this TODO
       training.paused = true
       training.musicDone.play()
       return
@@ -112,6 +110,7 @@ proc next(training: Training) =
   training.elapsed = 0.0
   training.progressBar.maxValue = training.currentExcersice().duration
   training.progressBar.value = 0.0
+  training.progressBar.text = training.currentExcersice().name
   case training.currentExcersice().kind
   of TRAIN: training.musicTrain.play()
   of REST: training.musicRest.play()
@@ -145,11 +144,22 @@ proc exitProc() {.noconv.} =
 proc isExcersiseDone(training: Training): bool =
   return training.elapsed >= training.exercises[training.currentExcerciseIdx].duration
 
+proc startCorrectMusic(training: Training) =
+  case training.currentExcersice.kind
+  of REST: training.musicRest.play()
+  of TRAIN: training.musicTrain.play()
+
 proc input(training: Training) =
   var key = getKey()
   case key
   of Key.Escape: exitProc()
-  of Key.Space: training.paused = not training.paused
+  of Key.Space:
+    training.paused = not training.paused
+    if training.paused:
+      training.stopAllMusic()
+    else:
+      training.startCorrectMusic()
+
   else: discard
 
 proc formatDuration(training: Training): string =
