@@ -13,6 +13,7 @@ const ascii = @[
   |
  / \"""
 ]
+
 type
   ExerciseKind = enum
     TRAIN, REST
@@ -151,7 +152,6 @@ proc newTraining(path: string): Training =
   result.next()
 
 proc exitProc() {.noconv.} =
-
   illwillDeinit()
   showCursor()
   quit(0)
@@ -179,7 +179,6 @@ proc input(training: Training) =
       training.stopAllMusic()
     else:
       training.startCorrectMusic()
-
   else: discard
 
 proc formatDuration(training: Training): string =
@@ -207,13 +206,10 @@ proc main() =
   illwillInit(fullscreen=true)
   setControlCHook(exitProc)
   hideCursor()
-
   var scriptPath = getAppDir() / "mockup.txt"
   if paramCount() > 0:
     scriptPath = paramStr(1)
-
   var training = newTraining(scriptPath)
-
   while true:
     let loopStartTime = epochTime()
     training.input()
@@ -234,7 +230,6 @@ proc main() =
         training.asciiArt.text = ascii[1]
     else:
       training.asciiArt.text = ""
-
 
 when isMainModule:
   main()
