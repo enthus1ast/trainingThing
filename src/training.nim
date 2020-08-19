@@ -37,6 +37,7 @@ type
     asciiArt: InfoBox
     defaultBackgroundColor: BackgroundColor
     defaultForegroundColor: ForegroundColor
+    currentTerminalSize: tuple[w: int, h: int]
   TrainingScriptLine = seq[string]
   TrainingExercise = object
     name: string
@@ -132,6 +133,7 @@ proc newTraining(path: string): Training =
     echo "Training script file not exist: ", path
     quit()
   result = Training()
+  result.currentTerminalSize = terminalSize()
   result.repetitions = 0
   result.currentExcerciseIdx = -1
   result.elapsed = 0.0
@@ -183,6 +185,17 @@ proc input(training: Training) =
     training.next()
   else: discard
 
+proc resizeHandler(training: Training) =
+  if terminalSize() != training.currentTerminalSize:
+    training.tb = newTerminalBuffer(terminalWidth(), terminalHeight())
+    training.progressBar.y = terminalHeight() - 1
+    training.progressBar.l = terminalWidth()
+    training.chooseBox.w = terminalWidth() - 2
+    training.asciiArt.x = terminalWidth()- 5
+    training.durationBox.y = terminalHeight() - 2
+    training.durationBox.w = terminalWidth()
+    # terminalWidth()
+
 proc formatDuration(training: Training): string =
   return
     $training.elapsed.int & " / " &
@@ -215,7 +228,13 @@ proc main() =
   while true:
     let loopStartTime = epochTime()
     training.input()
-    training.render()
+    training.resizeHandler()
+    try:
+      training.render()
+    except:
+      echo "could not render, maybe terminal to small?"
+      sleep(2000)
+      continue
     sleep(updateTimeout)
     if training.paused:
       continue
