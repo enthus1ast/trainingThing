@@ -179,6 +179,8 @@ proc input(training: Training) =
       training.stopAllMusic()
     else:
       training.startCorrectMusic()
+  of Key.Enter:
+    training.next()
   else: discard
 
 proc formatDuration(training: Training): string =
