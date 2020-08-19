@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "David Krause"
 description   = "A small cli tool, that helps you getting shredded after these corona times :)"
 license       = "MIT"
