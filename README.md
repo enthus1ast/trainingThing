@@ -1,5 +1,6 @@
 # trainingThing
-A small cli tool, that helps you getting :muscle: shredded :muscle: after these corona times :)
+A small cli HIIT (high intensity interval training) tool, that helps you getting :muscle: shredded :muscle: after these corona times :)
+
 
 
 ![trainingThing](trainingThing.png)
@@ -41,4 +42,16 @@ rest 10
 rest 10
 
 
+```
+
+Usage
+=====
+
+```
+training path/to/training/file
+```
+
+```
+space => pause/resume workout
+esc => exit
 ```
