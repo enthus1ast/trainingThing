@@ -23,7 +23,7 @@ rest 5
 train 60 HIGH KNEES
 rest 10
 
-train 60 JUMP_ROPES
+train 60 JUMP ROPES
 rest 10
 
 train 60 BURPEES
@@ -32,16 +32,14 @@ rest 10
 train 60 CLIMBERS
 rest 10
 
-train 60 JUMPING_JACKS
+train 60 JUMPING JACKS
 rest 10
 
-train 60 BLANK
+train 60 PLANK
 rest 10
 
 ## NOW MORE
 rest 10
-
-
 ```
 
 Usage
@@ -54,4 +52,5 @@ training path/to/training/file
 ```
 space => pause/resume workout
 esc => exit
+enter => skip current excersize
 ```
