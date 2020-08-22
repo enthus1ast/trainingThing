@@ -94,7 +94,7 @@ proc fillChoosebox(training: Training) =
   for exercise in training.exercises:
     training.chooseBox.add ($exercise.duration).align(6) & " " & exercise.name
 
-proc currentExcersice(training: Training): TrainingExercise =
+proc currentExercise(training: Training): TrainingExercise =
   return training.exercises[training.currentExcerciseIdx]
 
 proc stopAllMusic(training: Training) =
@@ -121,10 +121,10 @@ proc next(training: Training) =
   training.currentExcerciseIdx += 1
   training.chooseBox.choosenidx = training.currentExcerciseIdx
   training.elapsed = 0.0
-  training.progressBar.maxValue = training.currentExcersice().duration
+  training.progressBar.maxValue = training.currentExercise().duration
   training.progressBar.value = 0.0
-  training.progressBar.text = training.currentExcersice().name
-  case training.currentExcersice().kind
+  training.progressBar.text = training.currentExercise().name
+  case training.currentExercise().kind
   of TRAIN: training.musicTrain.play()
   of REST: training.musicRest.play()
 
@@ -158,11 +158,11 @@ proc exitProc() {.noconv.} =
   showCursor()
   quit(0)
 
-proc isExcersiseDone(training: Training): bool =
+proc isExerciseDone(training: Training): bool =
   return training.elapsed >= training.exercises[training.currentExcerciseIdx].duration
 
 proc startCorrectMusic(training: Training) =
-  case training.currentExcersice.kind
+  case training.currentExercise.kind
   of REST: training.musicRest.play()
   of TRAIN: training.musicTrain.play()
 
@@ -197,12 +197,11 @@ proc resizeHandler(training: Training) =
     training.asciiArt.x = terminalWidth()- 5
     training.durationBox.y = terminalHeight() - 2
     training.durationBox.w = terminalWidth()
-    # terminalWidth()
 
 proc formatDuration(training: Training): string =
   return
     $training.elapsed.int & " / " &
-    $training.currentExcersice().duration.int &
+    $training.currentExercise().duration.int &
     "   REPETITIONS: " & $training.repetitions &
     "   TOTAL TRAINING TIME: " & $initDuration(seconds=training.totalTrainingSeconds.int)
 
@@ -244,10 +243,10 @@ proc main() =
     let loopTime = epochTime() - loopStartTime
     training.elapsed += loopTime
     training.totalTrainingSeconds += loopTime
-    if training.isExcersiseDone():
+    if training.isExerciseDone():
       training.next()
     training.progressBar.value = training.elapsed.float.clamp(0, float.high)
-    if training.currentExcersice.kind == TRAIN:
+    if training.currentExercise.kind == TRAIN:
       if training.totalTrainingSeconds.int mod 2 == 0:
         training.asciiArt.text = ascii[0]
       else:
