@@ -52,5 +52,6 @@ training path/to/training/file
 ```
 space => pause/resume workout
 esc => exit
-enter => skip current excersize
+enter => skip current exercise
+backspace => previous exercise
 ```

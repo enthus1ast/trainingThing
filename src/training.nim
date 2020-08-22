@@ -183,6 +183,9 @@ proc input(training: Training) =
       training.startCorrectMusic()
   of Key.Enter:
     training.next()
+  of Key.Backspace:
+    training.currentExcerciseIdx = clamp(-1, training.currentExcerciseIdx - 2, int.high)
+    training.next()
   else: discard
 
 proc resizeHandler(training: Training) =
